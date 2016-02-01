@@ -41,6 +41,7 @@
 											<th>#</th>
 											<th>Nom</th>
 											<th>Script</th>
+											<th>Mode anonyme</th>
 											<th>Admin obligatoire</th>
 											<th style="width:5%;">Sélectionner</th>
 										</tr>
@@ -54,6 +55,7 @@
 												<td><?php secho($command['id']); ?></td>
 												<td><?php secho($command['name']); ?></td>
 												<td><?php secho($command['script']); ?></td>
+												<td><?php echo $command['anonymous'] ? 'Oui' : 'Non' ; ?></td>
 												<td><?php echo $command['admin'] ? 'Oui' : 'Non' ; ?></td>
 												<td><input type="checkbox" value="<?php secho($command['id']); ?>"></td>
 											</tr>
@@ -68,7 +70,7 @@
 									<a class="btn btn-success" href="<?php echo $this->generateUrl('commands', 'add'); ?>"><span class="fa fa-plus"></span> Ajouter une commande</a>
 								</div>
 								<div class="text-right col-xs-6 no-padding">
-									<strong>Action groupée :</strong> 
+									<strong>Action groupée :</strong>
 									<div class="btn-group action-dropdown" target="#table-commands">
 										<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Action pour la sélection <span class="caret"></span></button>
 										<ul class="dropdown-menu pull-right" role="menu">

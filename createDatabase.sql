@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS scheduleds
 
 CREATE TABLE IF NOT EXISTS contacts
 (
-	
+
 	id INT NOT NULL AUTO_INCREMENT,
 	name VARCHAR(100) NOT NULL,
 	number VARCHAR(20) NOT NULL,
@@ -107,6 +107,7 @@ CREATE TABLE IF NOT EXISTS commands
 	name VARCHAR(25) NOT NULL,
 	script VARCHAR(100) NOT NULL,
 	admin BOOLEAN NOT NULL,
+	anonymous BOOLEAN NOT NULL,
 	PRIMARY KEY (id),
 	UNIQUE (name)
 );
@@ -116,7 +117,7 @@ CREATE TABLE IF NOT EXISTS events
 	id INT NOT NULL AUTO_INCREMENT,
 	type VARCHAR(25) NOT NULL,
 	at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	text VARCHAR(255) NOT NULL,	
+	text VARCHAR(255) NOT NULL,
 	PRIMARY KEY (id)
 );
 
@@ -153,7 +154,7 @@ INSERT INTO settings (name, value)
 VALUES ('transfer', '1'),
 ('sms_stop', '1'),
 ('detect_url', '1'),
-('default_phone_country', 'fr'), 
+('default_phone_country', 'fr'),
 ('preferred_phone_country', 'fr,be,ca'),
 ('sms_flash', '0'),
 ('sms_reception_sound', '1');

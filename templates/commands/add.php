@@ -43,23 +43,30 @@
 									<div class="form-group">
 										<input name="name" class="form-control" type="text" placeholder="Nom commande" autofocus required>
 									</div>
-								</div>	
+								</div>
 								<div class="form-group">
 									<label>Commande à appeler (la commande sera appelée depuis le dossier "<?php echo PWD_SCRIPTS; ?>")</label>
 									<div class="form-group input-group">
 										<span class="input-group-addon"><span class="fa fa-link"></span></span>
 										<input name="script" class="form-control" type="text" placeholder="Ex : chauffage/monter.sh" autofocus required>
 									</div>
-								</div>	
+								</div>
+								<div class="form-group">
+									<label>Mode anonyme</label>
+									<div class="form-group">
+										<input name="anonymous" type="radio" value="1" required /> Oui
+										<input name="anonymous" type="radio" value="0" required /> Non
+									</div>
+								</div>
 								<div class="form-group">
 									<label>Niveau administrateur obligatoire</label>
 									<div class="form-group">
-										<input name="admin" type="radio" value="1" required /> Oui 
+										<input name="admin" type="radio" value="1" required /> Oui
 										<input name="admin" type="radio" value="0" required /> Non
 									</div>
 								</div>
 								<a class="btn btn-danger" href="<?php echo $this->generateUrl('commands'); ?>">Annuler</a>
-								<input type="submit" class="btn btn-success" value="Enregistrer la commande" /> 	
+								<input type="submit" class="btn btn-success" value="Enregistrer la commande" />
 							</form>
 						</div>
 					</div>

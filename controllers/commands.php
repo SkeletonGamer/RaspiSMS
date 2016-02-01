@@ -5,7 +5,7 @@
 	class commands extends Controller
 	{
 		/**
-		 * Cette fonction est appelée avant toute les autres : 
+		 * Cette fonction est appelée avant toute les autres :
 		 * Elle vérifie que l'utilisateur est bien connecté
 		 * @return void;
 		 */
@@ -16,19 +16,19 @@
 
 		/**
 		 * Cette fonction retourne toutes les commandes, sous forme d'un tableau permettant l'administration de ces commandess
-		 */	
+		 */
 		public function byDefault()
 		{
 			//Creation de l'object de base de données
 			global $db;
-			
+
 			//Recupération des commandes
 			$commands = $db->getFromTableWhere('commands');
 
 			$this->render('commands/default', array(
 				'commands' => $commands,
 			));
-			
+
 		}
 
 		/**
@@ -51,9 +51,9 @@
 
 			//Create de l'object de base de données
 			global $db;
-			
+
 			$db->deleteCommandsIn($ids);
-			header('Location: ' . $this->generateUrl('commands'));		
+			header('Location: ' . $this->generateUrl('commands'));
 			return true;
 		}
 
@@ -86,6 +86,7 @@
 		 * @param string $_POST['name'] : Le nom de la commande
 		 * @param string $_POST['script'] : Le script a appeler
 		 * @param boolean $_POST['admin'] : Si la commande necessite les droits d'admin (par défaut non)
+		 * @param boolean $_POST['anonymous'] : Si la commande peut être exécuter en anonyme
 		 * @return boolean;
 		 */
 		public function create($csrf)
@@ -101,9 +102,10 @@
 
 			$nom = $_POST['name'];
 			$script = $_POST['script'];
+			$anonymous = (isset($_POST['anonymous']) ? $_POST['anonymous'] : false);
 			$admin = (isset($_POST['admin']) ? $_POST['admin'] : false);
 
-			if (!$db->insertIntoTable('commands', ['name' => $nom, 'script' => $script, 'admin' => $admin]))
+			if (!$db->insertIntoTable('commands', ['name' => $nom, 'script' => $script, 'anonymous' => $anonymous, 'admin' => $admin]))
 			{
 				$_SESSION['errormessage'] = 'Impossible créer cette commande.';
 				header('Location: ' . $this->generateUrl('commands', 'add'));
@@ -111,7 +113,7 @@
 			}
 
 			$db->insertIntoTable('events', ['type' => 'COMMAND_ADD', 'text' => 'Ajout commande : ' . $nom . ' => ' . $script]);
-			
+
 			$_SESSION['successmessage'] = 'La commande a bien été créée.';
 			header('Location: ' . $this->generateUrl('commands'));
 			return true;
@@ -134,7 +136,7 @@
 			}
 
 			global $db;
-			
+
 			$errors = array(); //On initialise le tableau qui contiendra les erreurs rencontrés
 
 			//Pour chaque commande reçu, on boucle en récupérant son id (la clef), et la commande elle-même (la value)

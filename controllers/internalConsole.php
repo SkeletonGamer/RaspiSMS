@@ -51,7 +51,7 @@
 				}
 
 				$message .= "		Arguments optionnels : \n";
-				
+
 				if (!count($optionals))
 				{
 					$message .= "			Pas d'argument\n";
@@ -75,9 +75,9 @@
 		{
 			//On créé l'objet de base de données
 			global $db;
-			
+
 			for ($i = 0; $i < 30; $i++)
-			{			
+			{
 				$now = new DateTime();
 				$now = $now->format('Y-m-d H:i:s');
 
@@ -103,7 +103,7 @@
 					$id_scheduled = $scheduled['id'];
 					$text_sms = escapeshellarg($scheduled['content']);
 					$flash = $scheduled['flash'];
-	 
+
 					//On initialise les numéros auxquelles envoyer le SMS
 					$numbers = array();
 
@@ -134,7 +134,7 @@
 					}
 
 					$smsStops = $db->getFromTableWhere('sms_stop');
-					
+
 					foreach ($numbers as $number)
 					{
 						//Si les SMS STOP sont activés, on passe au numéro suivant si le numéro actuelle fait parti des SMS STOP
@@ -165,7 +165,7 @@
 						}
 
 						$id_sended = $db->lastId();
-						
+
 						//Commande qui envoie le SMS
 						$commande_send_sms = 'gammu-smsd-inject TEXT ' . escapeshellarg($number) . ' -report -len ' . mb_strlen($text_sms) . ' -text ' . $text_sms;
 
@@ -183,7 +183,7 @@
 				}
 
 				echo "Tous les SMS sont en cours d'envoi.\n";
-				//Tous les SMS ont été envoyés.	
+				//Tous les SMS ont été envoyés.
 				$db->deleteScheduledsIn($ids_scheduleds);
 
 				//On dors 2 secondes
@@ -192,22 +192,22 @@
 		}
 
 		/**
-		 * Cette fonction reçoit un SMS, et l'enregistre, en essayant dde trouver une commande au passage.
+		 * Cette fonction reçoit un SMS, et l'enregistre, en essayant de trouver une commande au passage.
 		 */
 		public function parseReceivedSMS()
 		{
 			//On créer l'objet de base de données
 			global $db;
-			
+
 			for ($i = 0; $i < 30; $i++)
-			{			
+			{
 				foreach (scandir(PWD_RECEIVEDS) as $dir)
 				{
 					//Si le fichier est un fichier système, on passe à l'itération suivante
 					if ($dir == '.' || $dir == '..')
 					{
 						continue;
-					}				
+					}
 
 					echo "Analyse du SMS " . $dir . "\n";
 
@@ -218,7 +218,7 @@
 					//On récupère le fichier, et on récupère la chaine jusqu'au premier ':' pour le numéro de téléphone source, et la fin pour le message
 					$content_file = file_get_contents(PWD_RECEIVEDS . $dir);
 
-					//Si on peux pas ouvrir le fichier, on quitte en logant une erreur
+					//Si on ne peux pas ouvrir le fichier, on quitte en logant une erreur
 					if ($content_file == false)
 					{
 						$this->wlog('Unable to read file "' . $dir);
@@ -264,7 +264,7 @@
 						$now = new DateTime();
 						$interval = new DateInterval('PT12H');
 						$sinceDate = $now->sub($interval)->format('Y-m-d H:i:s');
-	
+
 						if (!$sendeds = $db->getFromTableWhere('sendeds', ['target' => $number, 'delivered' => false, 'failed' => false, '>at' => $sinceDate], 'at', false, 1))
 						{
 							continue;
@@ -293,13 +293,13 @@
 						echo "Sended SMS id " . $sended['id'] . " to delivered status\n";
 						continue;
 					}
-					
+
 					if (!$number)
 					{
 						$this->wlog('Invalid phone number in file "' . $dir);
 						die(6);
 					}
-				
+
 					//On va vérifier si on a reçu une commande, et des identifiants
 					$flags = internalTools::parseForFlag($text);
 
@@ -307,33 +307,43 @@
 
 					$found_commands = array();
 
-					//Si on reçu des identifiants
-					if (array_key_exists('LOGIN', $flags) && array_key_exists('PASSWORD', $flags))
-					{
-						//Si on a bien un utilisateur avec les identifiants reçus
-						$user = $db->getUserFromEmail($flags['LOGIN']);
-						$this->wlog('We found ' . count($user) . ' users');
-						if ($user && $user['password'] == sha1($flags['PASSWORD']))
-						{
-							$this->wlog('Password is valid');
-							//On va passer en revue toutes les commandes, pour voir si on en trouve dans ce message
-							$commands = $db->getFromTableWhere('commands');
 
-							$this->wlog('We found ' . count($commands) . ' commands');
-							foreach ($commands as $command)
-							{
-								$command_name = mb_strtoupper($command['name']);
-								if (array_key_exists($command_name, $flags))
+					//On va passer en revue toutes les commandes, pour voir si on en trouve dans ce message
+					$commands = $db->getFromTableWhere('commands');
+
+					$this->wlog('We found ' . count($commands) . ' commands');
+					foreach ($commands as $command)
+					{
+						$command_name = mb_strtoupper($command['name']);
+						if (array_key_exists($command_name, $flags))
+						{
+							$this->wlog('We found command ' . $command_name);
+
+							if (!$command['anonymous']) {
+								//Si on reçu des identifiants
+								if (array_key_exists('LOGIN', $flags) && array_key_exists('PASSWORD', $flags))
 								{
-									$this->wlog('We found command ' . $command_name);
-									
-									//Si la commande ne nécessite pas d'être admin, ou si on est admin
-									if (!$command['admin'] || $user['admin'])
+									//Si on a bien un utilisateur avec les identifiants reçus
+									$user = $db->getUserFromEmail($flags['LOGIN']);
+									$this->wlog('We found ' . count($user) . ' users');
+									if ($user && $user['password'] == sha1($flags['PASSWORD']))
 									{
-										$this->wlog('And the count is ok');
-										$found_commands[$command_name] = PWD_SCRIPTS . $command['script'] . escapeshellcmd($flags[$command_name]);
+										$this->wlog('Password is valid');
+
+										//Si la commande ne nécessite pas d'être admin, ou si on est admin
+										if (!$command['admin'] || $user['admin'])
+										{
+											$this->wlog('And the count is ok');
+											$found_commands[$command_name] = PWD_SCRIPTS . $command['script'] . escapeshellcmd($flags[$command_name]);
+										}
 									}
 								}
+							}
+							//Si la commande pour être exécutée en anonyme
+							else
+							{
+								$this->wlog('And the count is ok');
+								$found_commands[$command_name] = PWD_SCRIPTS . $command['script'] . escapeshellcmd($flags[$command_name]);
 							}
 						}
 					}
@@ -392,9 +402,9 @@
 				$ids_transfers[] = $transfer['id'];
 				$ids_receiveds[] = $transfer['id_received'];
 			}
-			
+
 			$db->updateProgressTransfersIn($ids_transfers, true);
-			
+
 			$receiveds = $db->getReceivedsIn($ids_receiveds);
 
 			$users = $db->getFromTableWhere('users', ['transfer' => true]);
@@ -407,9 +417,9 @@
 					$to = $user['email'];
 					$subject = '[RaspiSMS] - Transfert d\'un SMS du ' . $received['send_by'];
 					$message = "Le numéro " . $received['send_by'] . " vous a envoyé un SMS : \n" . $received['content'];
-					
+
 					$ok = mail($to, $subject, $message);
-					
+
 					echo " ... " . ($ok ? 'OK' : 'KO') . "\n";
 				}
 			}
